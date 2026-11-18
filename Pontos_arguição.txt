@@ -1,0 +1,11 @@
+{
+  "estados": ["q0", "q1", "q2"],
+  "alfabeto": ["a", "b"],
+  "estadoInicial": "q0",
+  "estadosFinais": ["q2"],
+  "transicoes": [
+    { "estadoOrigem": "q0", "simbolo": "a", "estadoDestino": "q1" },
+    { "estadoOrigem": "q1", "simbolo": "b", "estadoDestino": "q2" }
+  ],
+  "cadeia": "ab"
+}

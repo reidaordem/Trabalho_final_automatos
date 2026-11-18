@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Linguagens Formais e Modelos Computacionais</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #475569;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --success-border: #22c55e;
+            --error-bg: #fee2e2;
+            --error-text: #991b1b;
+            --error-border: #ef4444;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        header {
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        header h1 { margin: 0 0 6px 0; font-size: 1.5rem; }
+        header p { margin: 0; color: #cbd5e1; font-size: 0.92rem; }
+
+        nav.tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: #1e293b;
+            padding: 0 20px;
+            gap: 4px;
+            border-bottom: 3px solid var(--primary);
+        }
+        nav.tabs button {
+            background: transparent;
+            color: #cbd5e1;
+            border: none;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px 6px 0 0;
+            transition: all 0.2s;
+            margin: 4px 0 0 0;
+        }
+        nav.tabs button:hover { background: #334155; color: white; }
+        nav.tabs button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        main { max-width: 1180px; margin: 24px auto; padding: 0 16px; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .card {
+            background: var(--card);
+            padding: 22px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.07);
+            border: 1px solid #e2e8f0;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #0f172a;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+        }
+        .card h3 { color: #334155; font-size: 1.02rem; margin-top: 18px; }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+
+        label { font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.9rem; color: #334155; }
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.92rem;
+            font-family: inherit;
+        }
+        textarea { font-family: 'Consolas', 'Courier New', monospace; font-size: 0.86rem; }
+
+        .btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        button.btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.15s;
+        }
+        button.btn:hover { background: var(--primary-dark); }
+        button.btn-sec { background: var(--secondary); }
+        button.btn-sec:hover { background: #334155; }
+        button.btn-del { background: #ef4444; padding: 5px 10px; font-size: 0.82rem; }
+        button.btn-del:hover { background: #dc2626; }
+
+        .result-box {
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 14px 0;
+        }
+        .sucesso { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+        .erro { background: var(--error-bg); color: var(--error-text); border: 1px solid var(--error-border); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: center; }
+        th { background: #e2e8f0; color: #0f172a; font-weight: 700; }
+        tr:nth-child(even) td { background: #f8fafc; }
+
+        .badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        .badge {
+            background: #e0e7ff;
+            color: #1e40af;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.86rem;
+        }
+
+        /* Visualizadores Gráficos (Bônus +1,0 pt) */
+        .visual-stage {
+            background: #0f172a;
+            color: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 14px 0;
+        }
+        .visual-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #334155;
+        }
+        .visual-controls span { font-family: monospace; font-size: 0.92rem; color: #38bdf8; }
+
+        /* Fita da Máquina de Turing */
+        .tape-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 14px 0;
+        }
+        .tape-cell {
+            width: 42px;
+            height: 46px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #475569;
+            border-radius: 6px;
+            background: #1e293b;
+            font-family: monospace;
+            font-size: 1.15rem;
+            font-weight: bold;
+        }
+        .tape-cell.head {
+            border-color: #22c55e;
+            background: #14532d;
+            color: #86efac;
+            transform: scale(1.1);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+        }
+        .tape-cell small { font-size: 0.65rem; color: #94a3b8; }
+
+        /* Pilha Visual do Autômato com Pilha */
+        .stack-wrapper {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 30px;
+            padding: 12px 0;
+        }
+        .stack-bucket {
+            width: 150px;
+            min-height: 180px;
+            border: 3px solid #38bdf8;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 8px;
+            gap: 5px;
+            background: #1e293b;
+        }
+        .stack-item {
+            background: #2563eb;
+            color: white;
+            text-align: center;
+            padding: 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .stack-item.top {
+            background: #22c55e;
+            color: #052e16;
+        }
+
+        /* Árvore de Derivação Simplificada */
+        .tree-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+        }
+        .tree ul {
+            padding-top: 18px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            padding-left: 0;
+            margin: 0;
+        }
+        .tree li {
+            list-style-type: none;
+            text-align: center;
+            position: relative;
+            padding: 18px 8px 0 8px;
+        }
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid #94a3b8;
+            width: 50%;
+            height: 18px;
+        }
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid #94a3b8;
+        }
+        .tree li:only-child::after, .tree li:only-child::before { display: none; }
+        .tree li:only-child { padding-top: 0; }
+        .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
+        .tree li:last-child::before { border-right: 2px solid #94a3b8; border-radius: 0 5px 0 0; }
+        .tree li:first-child::after { border-radius: 5px 0 0 0; }
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid #94a3b8;
+            width: 0;
+            height: 18px;
+        }
+        .tree-node {
+            display: inline-block;
+            border: 2px solid #2563eb;
+            background: #eff6ff;
+            color: #1e3a8a;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .tree-node.terminal {
+            border-color: #16a34a;
+            background: #dcfce7;
+            color: #14532d;
+        }
+
+        .fita-pos { font-family: monospace; background: #1e293b; color: #4ade80; padding: 3px 7px; border-radius: 4px; }
+        .mono { font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Simulador de Linguagens Formais e Modelos Computacionais</h1>
+    <p>Aspectos Teóricos da Computação — Linguagens, AFD/AFN, GLC (com Scanner/Parser), Autômato com Pilha, Máquina de Turing e Complexidade</p>
+</header>
+
+<nav class="tabs">
+    <button class="tab-btn active" onclick="abrirAba('mod1', this)">1. Linguagens Formais</button>
+    <button class="tab-btn" onclick="abrirAba('mod2', this)">2. AFD / AFN (JSON)</button>
+    <button class="tab-btn" onclick="abrirAba('mod3', this)">3. Gramáticas (GLC)</button>
+    <button class="tab-btn" onclick="abrirAba('mod4', this)">4. Autômato com Pilha</button>
+    <button class="tab-btn" onclick="abrirAba('mod5', this)">5. Máquina de Turing</button>
+    <button class="tab-btn" onclick="abrirAba('mod6', this)">6. Complexidade (O, Ω, Θ)</button>
+</nav>
+
+<main>
+
+    <!-- ===================================================================== -->
+    <!-- MÓDULO 1: LINGUAGENS FORMAIS                                          -->
+    <!-- ===================================================================== -->
+    <section id="mod1" class="tab-panel active">
+        <div class="card">
+            <h2>Módulo 1 — Linguagens Formais (Σ, L, Σ*, Σ+, |w| e Concatenação)</h2>
+            <div class="grid-2">
+                <div>
+                    <label>Alfabeto Σ (ex: {a, b} ou ab):</label>
+                    <input type="text" id="m1Alfabeto" value="{a, b}">
+                </div>
+                <div>
+                    <label>Linguagem L (ex: L = Σ* ou {ab, ba, abba}):</label>
+                    <input type="text" id="m1Linguagem" value="L = Σ*">
+                </div>
+            </div>
+            <div class="grid-3" style="margin-top: 12px;">
+                <div>
+                    <label>Cadeia Principal (w1):</label>
+                    <input type="text" id="m1Cadeia1" value="abba">
+                </div>
+                <div>
+                    <label>Segunda Cadeia (w2 para w1 · w2):</label>
+                    <input type="text" id="m1Cadeia2" value="ba">
+                </div>
+                <div>
+                    <label>Comprimento máximo para Σ* e Σ+:</label>
+                    <input type="number" id="m1MaxTam" value="3" min="0" max="5">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn" onclick="executarMod1()">▶ Analisar Linguagem e Cadeia</button>
+                <button class="btn btn-sec" onclick="carregarExemploMod1()">Exemplo do Edital (abba)</button>
+            </div>
+        </div>
+
+        <div class="card" id="m1ResultadoCard" style="display:none;">
+            <h2>Resultado da Análise Formal</h2>
+            <div id="m1Status" class="result-box"></div>
+            <div class="grid-3">
+                <div class="card" style="margin:0;">
+                    <strong>Alfabeto &amp; Linguagem</strong>
+                    <p id="m1InfoAlfa"></p>
+                </div>
+                <div class="card" style="margin:0;">
+                    <strong>Tamanho |w1|</strong>
+                    <p id="m1InfoTam" style="font-size:1.2rem; font-weight:bold; color:#2563eb;"></p>
+                </div>
+                <div class="card" style="margin:0;">
+                    <strong>Concatenação (w1 · w2)</strong>
+                    <p id="m1InfoConcat" class="mono"></p>
+                </div>
+            </div>
+            <h3>Fecho de Kleene (Σ*)</h3>
+            <div id="m1Kleene" class="badge-list"></div>
+            <h3>Fecho Positivo (Σ+)</h3>
+            <div id="m1Positivo" class="badge-list"></div>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- MÓDULO 2: SIMULADOR DE AUTÔMATO FINITO (AFD E AFN)                    -->
+    <!-- ===================================================================== -->
+    <section id="mod2" class="tab-panel">
+        <div class="card">
+            <h2>Módulo 2 — Simulador de Autômato Finito (AFD / AFN via JSON)</h2>
+            <div class="btn-group">
+                <button class="btn btn-sec" onclick="carregarAFDEdital()">Carregar AFD do Edital (ab)</button>
+                <button class="btn btn-sec" onclick="carregarAFNExemplo()">Carregar AFN (termina com 'ab')</button>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label>Definição do Autômato em JSON:</label>
+                    <textarea id="m2Json" rows="13"></textarea>
+                </div>
+                <div>
+                    <label>Cadeia de Entrada (w):</label>
+                    <input type="text" id="m2Cadeia" value="ab">
+                    <div class="btn-group" style="margin-top: 14px;">
+                        <button class="btn" onclick="executarMod2()">▶ Executar Autômato</button>
+                    </div>
+                    <p style="font-size:0.86rem; color:#475569;">
+                        <strong>Dica:</strong> O motor detecta automaticamente se o JSON define um <b>AFD</b> ou um <b>AFN</b> (incluindo transições vazias <code>"ε"</code>) e destaca os estados ativos no diagrama abaixo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="m2ResultadoCard" style="display:none;">
+            <h2>Execução e Visualização de Estados</h2>
+            <div id="m2Status" class="result-box"></div>
+            <p><strong>Caminho:</strong> <span id="m2Caminho" class="mono"></span></p>
+
+            <!-- Grafo Visual Interativo dos Estados -->
+            <div class="visual-stage">
+                <div class="visual-controls">
+                    <span id="m2VisualInfo">Passo 0</span>
+                    <div>
+                        <button class="btn btn-sec" onclick="mudarPassoAF(-1)">◀ Passo Anterior</button>
+                        <button class="btn" onclick="mudarPassoAF(1)">Próximo Passo ▶</button>
+                    </div>
+                </div>
+                <svg id="m2SvgGrafo" width="100%" height="260" viewBox="0 0 800 260"></svg>
+            </div>
+
+            <h3>Tabela Passo a Passo das Transições</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Passo</th>
+                        <th>Símbolo Lido</th>
+                        <th>Estados Anteriores</th>
+                        <th>Estados Atuais</th>
+                        <th>Transições Disparadas</th>
+                    </tr>
+                </thead>
+                <tbody id="m2TabelaPassos"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- MÓDULO 3: GRAMÁTICA LIVRE DE CONTEXTO (GLC + SCANNER DO PROFESSOR)    -->
+    <!-- ===================================================================== -->
+    <section id="mod3" class="tab-panel">
+        <div class="card">
+            <h2>Módulo 3 — Simulador de Gramática Livre de Contexto (GLC)</h2>
+            <div class="btn-group">
+                <button class="btn btn-sec" onclick="alternarModoGLC('custom')">Modo 1: GLC Customizada (S → aSb | ε)</button>
+                <button class="btn btn-sec" onclick="alternarModoGLC('nativa')">Modo 2: Scanner/Parser do Professor (S → ID = E)</button>
+            </div>
+
+            <!-- Subpainel GLC Customizada -->
+            <div id="m3PainelCustom">
+                <div class="grid-3">
+                    <div>
+                        <label>Variáveis V (separadas por vírgula):</label>
+                        <input type="text" id="m3Variaveis" value="S">
+                    </div>
+                    <div>
+                        <label>Terminais Σ (separados por vírgula):</label>
+                        <input type="text" id="m3Terminais" value="a, b">
+                    </div>
+                    <div>
+                        <label>Símbolo Inicial S:</label>
+                        <input type="text" id="m3Inicial" value="S">
+                    </div>
+                </div>
+                <div class="grid-2" style="margin-top: 12px;">
+                    <div>
+                        <label>Produções R (uma por linha, use ε ou lambda para vazio):</label>
+                        <textarea id="m3Producoes" rows="4">S -> aSb
+S -> ε</textarea>
+                    </div>
+                    <div>
+                        <label>Cadeia de Entrada (w):</label>
+                        <input type="text" id="m3Cadeia" value="aaabbb">
+                        <div class="btn-group" style="margin-top: 12px;">
+                            <button class="btn" onclick="executarMod3Custom()">▶ Derivar Cadeia</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subpainel Gramática Nativa (Scanner + Parser do Professor) -->
+            <div id="m3PainelNativa" style="display:none;">
+                <p style="font-size:0.9rem; color:#334155;">
+                    Utiliza diretamente as classes <code>Lexer</code> e <code>Parser</code> (descida recursiva <code>S -&gt; ID = E</code>) fornecidas pelo professor.
+                </p>
+                <label>Expressão de Atribuição:</label>
+                <input type="text" id="m3ExpressaoNativa" value="z = (x + y) * 2">
+                <div class="btn-group">
+                    <button class="btn" onclick="executarMod3Nativa()">▶ Validar com Lexer &amp; Parser</button>
+                    <button class="btn btn-sec" onclick="document.getElementById('m3ExpressaoNativa').value='resultado = (a1 + 25) / 3'; executarMod3Nativa()">Testar Válida</button>
+                    <button class="btn btn-sec" onclick="document.getElementById('m3ExpressaoNativa').value='x = (y + 2))'; executarMod3Nativa()">Testar Inválida</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="m3ResultadoCard" style="display:none;">
+            <h2>Resultado da Derivação</h2>
+            <div id="m3Status" class="result-box"></div>
+            <p><strong>Derivação:</strong> <span id="m3Resumo" class="mono"></span></p>
+
+            <h3>Derivação Passo a Passo</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Passo</th>
+                        <th>Forma Sentencial</th>
+                        <th>Produção / Regra Aplicada</th>
+                    </tr>
+                </thead>
+                <tbody id="m3TabelaPassos"></tbody>
+            </table>
+
+            <h3>Árvore de Derivação Simplificada</h3>
+            <div class="tree-box">
+                <div id="m3ArvoreContainer" class="tree"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- MÓDULO 4: AUTÔMATO COM PILHA (AP)                                     -->
+    <!-- ===================================================================== -->
+    <section id="mod4" class="tab-panel">
+        <div class="card">
+            <h2>Módulo 4 — Simulador de Autômato com Pilha (L = { aⁿbⁿ | n ≥ 1 })</h2>
+            <div class="grid-3">
+                <div>
+                    <label>Estados Q:</label>
+                    <input type="text" id="m4Estados" value="q0, q1, q2">
+                </div>
+                <div>
+                    <label>Alfabeto Σ:</label>
+                    <input type="text" id="m4Alfabeto" value="a, b">
+                </div>
+                <div>
+                    <label>Símbolo Inicial da Pilha (Z0):</label>
+                    <input type="text" id="m4Z0" value="Z" maxlength="1">
+                </div>
+            </div>
+            <div class="grid-3" style="margin-top: 10px;">
+                <div>
+                    <label>Estado Inicial (q0):</label>
+                    <input type="text" id="m4Inicial" value="q0">
+                </div>
+                <div>
+                    <label>Estados Finais (F):</label>
+                    <input type="text" id="m4Finais" value="q2">
+                </div>
+                <div>
+                    <label>Cadeia de Entrada (w):</label>
+                    <input type="text" id="m4Cadeia" value="aaabbb">
+                </div>
+            </div>
+
+            <h3>Transições δ(estado, leitura, topo) → (novoEstado, empilhar)</h3>
+            <div class="btn-group">
+                <button class="btn btn-sec" onclick="adicionarLinhaAP()">+ Adicionar Transição</button>
+                <button class="btn btn-sec" onclick="carregarAPAnBn()">Carregar Padrão L = { aⁿbⁿ | n ≥ 1 }</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estado Atual</th>
+                        <th>Leitura (ou ε)</th>
+                        <th>Topo Pilha (Pop)</th>
+                        <th>Novo Estado</th>
+                        <th>Empilhar (Push / ε)</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="m4CorpoTabela"></tbody>
+            </table>
+            <div class="btn-group" style="margin-top: 14px;">
+                <button class="btn" onclick="executarMod4()">▶ Simular Autômato com Pilha</button>
+            </div>
+        </div>
+
+        <div class="card" id="m4ResultadoCard" style="display:none;">
+            <h2>Execução e Visualização da Pilha (LIFO)</h2>
+            <div id="m4Status" class="result-box"></div>
+
+            <!-- Visualizador da Pilha -->
+            <div class="visual-stage">
+                <div class="visual-controls">
+                    <span id="m4VisualInfo">Passo 0</span>
+                    <div>
+                        <button class="btn btn-sec" onclick="mudarPassoAP(-1)">◀ Passo Anterior</button>
+                        <button class="btn" onclick="mudarPassoAP(1)">Próximo Passo ▶</button>
+                    </div>
+                </div>
+                <div class="stack-wrapper">
+                    <div>
+                        <div style="text-align:center; font-size:0.8rem; color:#94a3b8; margin-bottom:4px;">TOPO DA PILHA</div>
+                        <div id="m4PilhaVisual" class="stack-bucket"></div>
+                        <div style="text-align:center; font-size:0.8rem; color:#94a3b8; margin-top:4px;">BASE</div>
+                    </div>
+                    <div style="max-width: 420px;">
+                        <p><strong>Estado Atual:</strong> <span id="m4VisEstado" style="color:#4ade80; font-size:1.2rem;"></span></p>
+                        <p><strong>Símbolo Lido:</strong> <span id="m4VisLeitura" class="mono" style="color:#38bdf8;"></span></p>
+                        <p><strong>Operação:</strong> <span id="m4VisAcao" style="color:#e2e8f0;"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Tabela Passo a Passo (Leitura, Estado e Pilha)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Passo</th>
+                        <th>Leitura</th>
+                        <th>Estado</th>
+                        <th>Conteúdo da Pilha</th>
+                        <th>Operação Realizada</th>
+                    </tr>
+                </thead>
+                <tbody id="m4TabelaPassos"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- MÓDULO 5: MÁQUINA DE TURING                                           -->
+    <!-- ===================================================================== -->
+    <section id="mod5" class="tab-panel">
+        <div class="card">
+            <h2>Módulo 5 — Simulador de Máquina de Turing</h2>
+            <div class="grid-3">
+                <div>
+                    <label>Cadeia de Entrada (Fita):</label>
+                    <input type="text" id="fita" value="000100">
+                </div>
+                <div>
+                    <label>Estado Inicial:</label>
+                    <input type="text" id="estadoInicial" value="q0">
+                </div>
+                <div>
+                    <label>Estado Final (Aceitação):</label>
+                    <input type="text" id="estadoFinal" value="q3">
+                </div>
+            </div>
+
+            <h3>Transições δ(estado, lido) → (novoEstado, escrito, direção)</h3>
+            <div class="btn-group">
+                <button class="btn btn-sec" onclick="adicionarLinhaMT()">+ Adicionar Transição</button>
+                <button class="btn btn-sec" onclick="carregarMTOpcaoB()">Opção B: Soma Unária (000100 → 00000)</button>
+                <button class="btn btn-sec" onclick="carregarMTOpcaoA()">Opção A: Reconhecer L = { w#w } (ab#ab)</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estado Atual</th>
+                        <th>Símbolo Lido</th>
+                        <th>Novo Estado</th>
+                        <th>Símbolo Escrito</th>
+                        <th>Direção (R/L)</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabelaMT"></tbody>
+            </table>
+            <div class="btn-group" style="margin-top: 14px;">
+                <button class="btn" onclick="simularMT()">▶ Simular Máquina de Turing</button>
+            </div>
+        </div>
+
+        <div class="card" id="cardResultadoMT" style="display:none;">
+            <h2>Resultado e Fita Interativa</h2>
+            <div id="statusResultadoMT" class="result-box"></div>
+
+            <!-- Visualizador Interativo da Fita -->
+            <div class="visual-stage">
+                <div class="visual-controls">
+                    <span id="m5VisualInfo">Passo 0</span>
+                    <div>
+                        <button class="btn btn-sec" onclick="mudarPassoMT(-1)">◀ Passo Anterior</button>
+                        <button class="btn" onclick="mudarPassoMT(1)">Próximo Passo ▶</button>
+                    </div>
+                </div>
+                <div id="m5FitaVisual" class="tape-container"></div>
+                <div style="text-align:center; font-size:0.88rem; color:#cbd5e1;" id="m5AcaoVisual"></div>
+            </div>
+
+            <h3>Execução Passo a Passo</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Passo</th>
+                        <th>Estado</th>
+                        <th>Símbolo Lido</th>
+                        <th>Fita (Cabeçote entre [ ])</th>
+                        <th>Ação Realizada</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoPassosMT"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- MÓDULO 6: COMPLEXIDADE COMPUTACIONAL                                  -->
+    <!-- ===================================================================== -->
+    <section id="mod6" class="tab-panel">
+        <div class="card">
+            <h2>Módulo 6 — Análise Assintótica da Complexidade Computacional (O, Ω, Θ)</h2>
+            <p>
+                A tabela abaixo sintetiza a análise de complexidade de tempo e espaço dos algoritmos implementados em cada módulo, considerando <strong>n = |w|</strong> (tamanho da cadeia de entrada), <strong>|Q|</strong> (número de estados), <strong>|T|</strong> (número de transições) e <strong>k</strong> (comprimento máximo do fecho).
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Módulo / Algoritmo</th>
+                        <th>Estrutura de Dados</th>
+                        <th>Melhor Caso Ω()</th>
+                        <th>Caso Médio Θ()</th>
+                        <th>Pior Caso O()</th>
+                        <th>Espaço Auxiliar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>1. Validação em Σ</strong><br><small>FormalLexer.validarCadeia</small></td>
+                        <td><code>LinkedHashSet&lt;Character&gt;</code></td>
+                        <td><strong>Ω(1)</strong><br><small>1º símbolo inválido</small></td>
+                        <td><strong>Θ(n)</strong><br><small>Varredura linear</small></td>
+                        <td><strong>O(n)</strong><br><small>Todos os n símbolos</small></td>
+                        <td>O(|Σ|)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>1. Geração de Σ* e Σ+</strong><br><small>BFS até tamanho k</small></td>
+                        <td><code>ArrayDeque&lt;String&gt;</code></td>
+                        <td><strong>Ω(1)</strong><br><small>k = 0 (apenas ε)</small></td>
+                        <td><strong>Θ(|Σ|ᵏ)</strong><br><small>Árvore |Σ|-ária</small></td>
+                        <td><strong>O(|Σ|ᵏ)</strong><br><small>Crescimento exponencial</small></td>
+                        <td>O(|Σ|ᵏ)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2. Simulador de AFD</strong><br><small>AutomatoFinito (determinístico)</small></td>
+                        <td><code>Set&lt;String&gt;</code> + Lista δ</td>
+                        <td><strong>Ω(1)</strong><br><small>Trava no 1º símbolo</small></td>
+                        <td><strong>Θ(n · |T|)</strong><br><small>1 estado ativo/passo</small></td>
+                        <td><strong>O(n · |T|)</strong><br><small>O(n) com HashMap</small></td>
+                        <td>O(1)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2. Simulador de AFN / AFN-ε</strong><br><small>Conjuntos ativos + Fecho-ε</small></td>
+                        <td><code>LinkedHashSet</code> + <code>ArrayDeque</code></td>
+                        <td><strong>Ω(1)</strong><br><small>Conjunto ativo vazio</small></td>
+                        <td><strong>Θ(n · |Q| · |T|)</strong><br><small>Subconjuntos em tempo real</small></td>
+                        <td><strong>O(n · |Q| · |T|)</strong><br><small>Evita O(2ⁿ) do backtracking</small></td>
+                        <td>O(|Q|)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3. Parser Nativo (Professor)</strong><br><small>Descida Recursiva S → ID = E</small></td>
+                        <td><code>List&lt;Token&gt;</code> + <code>Stack</code></td>
+                        <td><strong>Ω(1)</strong><br><small>Erro no 1º token</small></td>
+                        <td><strong>Θ(n)</strong><br><small>1 leitura por token</small></td>
+                        <td><strong>O(n)</strong><br><small>Gramática LL(1) sem retrocesso</small></td>
+                        <td>O(n) (pilha recursão)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3. GLC Genérica</strong><br><small>Derivação mais à esquerda (BFS)</small></td>
+                        <td><code>ArrayDeque</code> + <code>HashSet</code></td>
+                        <td><strong>Ω(1)</strong><br><small>S → w direto</small></td>
+                        <td><strong>Θ(bᵈ)</strong><br><small>Com poda de prefixo</small></td>
+                        <td><strong>O(|R|ᵈ)</strong><br><small>d = passos da derivação</small></td>
+                        <td>O(|R|ᵈ)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>4. Autômato com Pilha (AP)</strong><br><small>L = { aⁿbⁿ | n ≥ 1 }</small></td>
+                        <td><code>PilhaAP (ArrayDeque)</code></td>
+                        <td><strong>Ω(1)</strong><br><small>Inicia com 'b'</small></td>
+                        <td><strong>Θ(n)</strong><br><small>n/2 push + n/2 pop</small></td>
+                        <td><strong>O(n)</strong><br><small>Determinístico em aⁿbⁿ</small></td>
+                        <td>Θ(n) (altura da pilha)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>5. Máquina de Turing (MT)</strong><br><small>Soma Unária (x + y)</small></td>
+                        <td><code>Fita (ArrayList)</code></td>
+                        <td><strong>Ω(1)</strong><br><small>Sem transição inicial</small></td>
+                        <td><strong>Θ(n · |T|)</strong><br><small>1 ida e 1 volta na fita</small></td>
+                        <td><strong>O(s · |T|)</strong><br><small>s = passos (trava em 1000)</small></td>
+                        <td>Θ(n) (células da fita)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>5. Máquina de Turing (MT)</strong><br><small>Reconhecedor L = { w#w }</small></td>
+                        <td><code>Fita (ArrayList)</code></td>
+                        <td><strong>Ω(1)</strong><br><small>Falha no 1º símbolo</small></td>
+                        <td><strong>Θ(n² · |T|)</strong><br><small>Varreduras ida e volta</small></td>
+                        <td><strong>O(n² · |T|)</strong><br><small>n/2 ciclos de tamanho n</small></td>
+                        <td>Θ(n)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Justificativas Teóricas para a Arguição</h3>
+            <ul>
+                <li><strong>Por que o AFN não explode em O(2ⁿ)?</strong> Porque rastreamos o conjunto de estados ativos simultaneamente (inspirado na construção de subconjuntos de Rabin-Scott), limitando os estados ativos a no máximo <code>|Q|</code> a cada símbolo lido.</li>
+                <li><strong>Por que a Máquina de Turing possui <code>limitePassos = 1000</code>?</strong> Pelo <em>Problema da Parada</em> (Alan Turing, 1936), é indecidível determinar genericamente se uma MT arbitrária para ou entra em laço infinito para uma dada entrada.</li>
+                <li><strong>Por que o reconhecimento de <code>w#w</code> na MT de 1 fita é quadrático Θ(n²)?</strong> Como o cabeçote só se move uma célula por passo, para cada símbolo marcado antes do <code>#</code> ele precisa atravessar toda a cadeia até o lado direito e retornar.</li>
+            </ul>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    // =========================================================================
+    // CONTROLE DE ABAS E UTILITÁRIOS
+    // =========================================================================
+    function abrirAba(idAba, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(idAba).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function esc(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // =========================================================================
+    // MÓDULO 1: LINGUAGENS FORMAIS
+    // =========================================================================
+    function carregarExemploMod1() {
+        document.getElementById('m1Alfabeto').value = '{a, b}';
+        document.getElementById('m1Linguagem').value = 'L = Σ*';
+        document.getElementById('m1Cadeia1').value = 'abba';
+        document.getElementById('m1Cadeia2').value = 'ba';
+        document.getElementById('m1MaxTam').value = 3;
+        executarMod1();
+    }
+
+    async function executarMod1() {
+        const payload = {
+            alfabeto: document.getElementById('m1Alfabeto').value,
+            definicaoLinguagem: document.getElementById('m1Linguagem').value,
+            cadeia1: document.getElementById('m1Cadeia1').value,
+            cadeia2: document.getElementById('m1Cadeia2').value,
+            tamanhoMaximoFecho: parseInt(document.getElementById('m1MaxTam').value || '3', 10)
+        };
+
+        const res = await fetch('/api/linguagens/analisar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        const card = document.getElementById('m1ResultadoCard');
+        card.style.display = 'block';
+        const status = document.getElementById('m1Status');
+
+        if (!res.ok) {
+            status.className = 'result-box erro';
+            status.innerText = data.erro || 'Erro ao analisar linguagem.';
+            return;
+        }
+
+        status.className = 'result-box ' + (data.validaNoAlfabeto ? 'sucesso' : 'erro');
+        status.innerText = data.mensagem;
+
+        document.getElementById('m1InfoAlfa').innerText = `Σ = ${data.alfabetoFormatado} | ${data.linguagemDefinida}`;
+        document.getElementById('m1InfoTam').innerText = `${data.tamanhoCadeia1}`;
+        document.getElementById('m1InfoConcat').innerText = data.validaNoAlfabeto
+            ? `"${data.concatenacao}" (Tamanho = ${data.tamanhoConcatenacao})`
+            : '-';
+
+        document.getElementById('m1Kleene').innerHTML = (data.fechoKleene || [])
+            .map(w => `<span class="badge">${esc(w)}</span>`).join('');
+        document.getElementById('m1Positivo').innerHTML = (data.fechoPositivo || [])
+            .map(w => `<span class="badge">${esc(w)}</span>`).join('');
+    }
+
+    // =========================================================================
+    // MÓDULO 2: AUTÔMATO FINITO (AFD / AFN) + GRAFO SVG
+    // =========================================================================
+    let dadosAFAtual = null;
+    let indicePassoAF = 0;
+
+    function carregarAFDEdital() {
+        const exemplo = {
+            estados: ["q0", "q1", "q2"],
+            alfabeto: ["a", "b"],
+            estadoInicial: "q0",
+            estadosFinais: ["q2"],
+            transicoes: [
+                { estadoOrigem: "q0", simbolo: "a", estadoDestino: "q1" },
+                { estadoOrigem: "q1", simbolo: "b", estadoDestino: "q2" }
+            ]
+        };
+        document.getElementById('m2Json').value = JSON.stringify(exemplo, null, 2);
+        document.getElementById('m2Cadeia').value = 'ab';
+    }
+
+    function carregarAFNExemplo() {
+        const exemplo = {
+            estados: ["q0", "q1", "q2"],
+            alfabeto: ["a", "b"],
+            estadoInicial: "q0",
+            estadosFinais: ["q2"],
+            transicoes: [
+                { estadoOrigem: "q0", simbolo: "a", estadoDestino: "q0" },
+                { estadoOrigem: "q0", simbolo: "b", estadoDestino: "q0" },
+                { estadoOrigem: "q0", simbolo: "a", estadoDestino: "q1" },
+                { estadoOrigem: "q1", simbolo: "b", estadoDestino: "q2" }
+            ]
+        };
+        document.getElementById('m2Json').value = JSON.stringify(exemplo, null, 2);
+        document.getElementById('m2Cadeia').value = 'baab';
+    }
+
+    async function executarMod2() {
+        let objJson;
+        try {
+            objJson = JSON.parse(document.getElementById('m2Json').value);
+        } catch (e) {
+            alert('JSON inválido: ' + e.message);
+            return;
+        }
+        objJson.cadeia = document.getElementById('m2Cadeia').value;
+
+        const res = await fetch('/api/automatos/finito/simular', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(objJson)
+        });
+        const data = await res.json();
+
+        const card = document.getElementById('m2ResultadoCard');
+        card.style.display = 'block';
+        const status = document.getElementById('m2Status');
+
+        if (!res.ok) {
+            status.className = 'result-box erro';
+            status.innerText = data.erro || 'Erro ao simular autômato.';
+            return;
+        }
+
+        dadosAFAtual = data;
+        indicePassoAF = data.passos.length - 1;
+
+        status.className = 'result-box ' + (data.aceita ? 'sucesso' : 'erro');
+        status.innerText = data.mensagem;
+        document.getElementById('m2Caminho').innerText = data.caminhoResumo;
+
+        const tbody = document.getElementById('m2TabelaPassos');
+        tbody.innerHTML = '';
+        data.passos.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => { indicePassoAF = idx; renderizarGrafoAF(); };
+            tr.innerHTML = `
+                <td>${p.passo}</td>
+                <td class="mono">${esc(p.simboloLido)}</td>
+                <td class="mono">{${esc((p.estadosAnteriores || []).join(', '))}}</td>
+                <td class="mono"><strong>{${esc((p.estadosAtuais || []).join(', '))}}</strong></td>
+                <td class="mono">${esc((p.transicoesDisparadas || []).join(' | ') || '-')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        renderizarGrafoAF();
+    }
+
+    function mudarPassoAF(delta) {
+        if (!dadosAFAtual) return;
+        indicePassoAF = Math.max(0, Math.min(dadosAFAtual.passos.length - 1, indicePassoAF + delta));
+        renderizarGrafoAF();
+    }
+
+    function renderizarGrafoAF() {
+        if (!dadosAFAtual) return;
+        const svg = document.getElementById('m2SvgGrafo');
+        const passo = dadosAFAtual.passos[indicePassoAF];
+        const ativos = new Set(passo.estadosAtuais || []);
+        const finais = new Set(dadosAFAtual.estadosFinais || []);
+        const estados = Array.from(dadosAFAtual.estados || []);
+
+        document.getElementById('m2VisualInfo').innerText =
+            `Passo ${passo.passo} | Leu: '${passo.simboloLido}' | Ativos: {${Array.from(ativos).join(', ') || '∅'}}`;
+
+        // Calcula coordenadas dos nós
+        const pos = {};
+        const n = estados.length;
+        estados.forEach((est, i) => {
+            if (n <= 4) {
+                const espaco = 700 / (n + 1);
+                pos[est] = { x: 70 + espaco * (i + 1), y: 145 };
+            } else {
+                const ang = (2 * Math.PI * i) / n - Math.PI / 2;
+                pos[est] = { x: 400 + 240 * Math.cos(ang), y: 135 + 85 * Math.sin(ang) };
+            }
+        });
+
+        // Agrupa rótulos de transições entre o mesmo par (origem -> destino)
+        const arestas = {};
+        (dadosAFAtual.transicoes || []).forEach(t => {
+            const k = `${t.estadoOrigem}->${t.estadoDestino}`;
+            if (!arestas[k]) arestas[k] = { origem: t.estadoOrigem, destino: t.estadoDestino, simbolos: [] };
+            arestas[k].simbolos.push(t.simbolo);
+        });
+
+        let html = `
+            <defs>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="26" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8" />
+                </marker>
+                <marker id="arrowSelf" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8" />
+                </marker>
+            </defs>
+        `;
+
+        // Desenha arestas
+        Object.values(arestas).forEach(a => {
+            const p1 = pos[a.origem];
+            const p2 = pos[a.destino];
+            if (!p1 || !p2) return;
+            const label = a.simbolos.join(',');
+
+            if (a.origem === a.destino) {
+                // Auto-loop
+                html += `
+                    <path d="M ${p1.x - 12} ${p1.y - 20} C ${p1.x - 30} ${p1.y - 75}, ${p1.x + 30} ${p1.y - 75}, ${p1.x + 12} ${p1.y - 22}"
+                          fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowSelf)" />
+                    <text x="${p1.x}" y="${p1.y - 68}" fill="#38bdf8" font-size="13" font-family="monospace" text-anchor="middle">${esc(label)}</text>
+                `;
+            } else {
+                const temReversa = Boolean(arestas[`${a.destino}->${a.origem}`]);
+                const mx = (p1.x + p2.x) / 2;
+                const my = (p1.y + p2.y) / 2 + (temReversa ? (p1.x < p2.x ? -28 : 28) : -14);
+                html += `
+                    <path d="M ${p1.x} ${p1.y} Q ${mx} ${my} ${p2.x} ${p2.y}"
+                          fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)" />
+                    <text x="${mx}" y="${my - 4}" fill="#38bdf8" font-size="13" font-family="monospace" text-anchor="middle">${esc(label)}</text>
+                `;
+            }
+        });
+
+        // Seta do estado inicial
+        if (pos[dadosAFAtual.estadoInicial]) {
+            const pi = pos[dadosAFAtual.estadoInicial];
+            html += `
+                <line x1="${pi.x - 55}" y1="${pi.y}" x2="${pi.x - 25}" y2="${pi.y}" stroke="#facc15" stroke-width="2.5" />
+                <polygon points="${pi.x - 25},${pi.y - 5} ${pi.x - 25},${pi.y + 5} ${pi.x - 18},${pi.y}" fill="#facc15" />
+            `;
+        }
+
+        // Desenha nós dos estados
+        estados.forEach(est => {
+            const p = pos[est];
+            const isAtivo = ativos.has(est);
+            const isFinal = finais.has(est);
+            const fill = isAtivo ? '#16a34a' : '#1e293b';
+            const stroke = isAtivo ? '#86efac' : '#64748b';
+
+            html += `<circle cx="${p.x}" cy="${p.y}" r="22" fill="${fill}" stroke="${stroke}" stroke-width="3" />`;
+            if (isFinal) {
+                html += `<circle cx="${p.x}" cy="${p.y}" r="17" fill="none" stroke="${stroke}" stroke-width="2" />`;
+            }
+            html += `<text x="${p.x}" y="${p.y + 5}" fill="white" font-size="13" font-weight="bold" font-family="monospace" text-anchor="middle">${esc(est)}</text>`;
+        });
+
+        svg.innerHTML = html;
+    }
+
+    // =========================================================================
+    // MÓDULO 3: GRAMÁTICA LIVRE DE CONTEXTO (GLC + SCANNER DO PROFESSOR)
+    // =========================================================================
+    function alternarModoGLC(modo) {
+        document.getElementById('m3PainelCustom').style.display = modo === 'custom' ? 'block' : 'none';
+        document.getElementById('m3PainelNativa').style.display = modo === 'nativa' ? 'block' : 'none';
+        document.getElementById('m3ResultadoCard').style.display = 'none';
+    }
+
+    async function executarMod3Custom() {
+        const payload = {
+            variaveis: document.getElementById('m3Variaveis').value.split(',').map(s => s.trim()).filter(Boolean),
+            terminais: document.getElementById('m3Terminais').value.split(',').map(s => s.trim()).filter(Boolean),
+            simboloInicial: document.getElementById('m3Inicial').value.trim(),
+            producoes: document.getElementById('m3Producoes').value.split('\n').map(s => s.trim()).filter(Boolean),
+            cadeia: document.getElementById('m3Cadeia').value
+        };
+
+        const res = await fetch('/api/gramaticas/simular', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        exibirResultadoGLC(res, await res.json());
+    }
+
+    async function executarMod3Nativa() {
+        const res = await fetch('/api/gramaticas/nativa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ expressao: document.getElementById('m3ExpressaoNativa').value })
+        });
+        exibirResultadoGLC(res, await res.json());
+    }
+
+    function exibirResultadoGLC(res, data) {
+        const card = document.getElementById('m3ResultadoCard');
+        card.style.display = 'block';
+        const status = document.getElementById('m3Status');
+
+        if (!res.ok) {
+            status.className = 'result-box erro';
+            status.innerText = data.erro || 'Erro ao analisar gramática.';
+            return;
+        }
+
+        status.className = 'result-box ' + (data.aceita ? 'sucesso' : 'erro');
+        status.innerText = data.mensagem;
+        document.getElementById('m3Resumo').innerText = data.derivacaoResumo || '-';
+
+        const tbody = document.getElementById('m3TabelaPassos');
+        tbody.innerHTML = '';
+        (data.passos || []).forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${p.passo}</td>
+                <td class="mono"><strong>${esc(p.formaSentencial)}</strong></td>
+                <td class="mono">${esc(p.regraAplicada)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const arvoreDiv = document.getElementById('m3ArvoreContainer');
+        if (data.arvoreDerivacao) {
+            arvoreDiv.innerHTML = `<ul>${renderizarNoArvore(data.arvoreDerivacao)}</ul>`;
+        } else {
+            arvoreDiv.innerHTML = '<p style="color:#64748b;">Árvore não gerada (cadeia rejeitada).</p>';
+        }
+    }
+
+    function renderizarNoArvore(no) {
+        const temFilhos = no.filhos && no.filhos.length > 0;
+        const classe = temFilhos ? 'tree-node' : 'tree-node terminal';
+        let html = `<li><span class="${classe}">${esc(no.simbolo)}</span>`;
+        if (temFilhos) {
+            html += '<ul>' + no.filhos.map(renderizarNoArvore).join('') + '</ul>';
+        }
+        html += '</li>';
+        return html;
+    }
+
+    // =========================================================================
+    // MÓDULO 4: AUTÔMATO COM PILHA (AP)
+    // =========================================================================
+    let dadosAPAtual = null;
+    let indicePassoAP = 0;
+
+    function adicionarLinhaAP(atual = '', leitura = '', topo = '', novo = '', empilhar = '') {
+        const tbody = document.getElementById('m4CorpoTabela');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="ap-atual" value="${esc(atual)}" style="width:70px"></td>
+            <td><input type="text" class="ap-leitura" value="${esc(leitura)}" style="width:60px"></td>
+            <td><input type="text" class="ap-topo" value="${esc(topo)}" style="width:60px"></td>
+            <td><input type="text" class="ap-novo" value="${esc(novo)}" style="width:70px"></td>
+            <td><input type="text" class="ap-empilhar" value="${esc(empilhar)}" style="width:80px"></td>
+            <td><button type="button" class="btn btn-del" onclick="this.closest('tr').remove()">Excluir</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function carregarAPAnBn() {
+        document.getElementById('m4Estados').value = 'q0, q1, q2';
+        document.getElementById('m4Alfabeto').value = 'a, b';
+        document.getElementById('m4Z0').value = 'Z';
+        document.getElementById('m4Inicial').value = 'q0';
+        document.getElementById('m4Finais').value = 'q2';
+        document.getElementById('m4Cadeia').value = 'aaabbb';
+
+        document.getElementById('m4CorpoTabela').innerHTML = '';
+        adicionarLinhaAP('q0', 'a', 'Z', 'q0', 'AZ');
+        adicionarLinhaAP('q0', 'a', 'A', 'q0', 'AA');
+        adicionarLinhaAP('q0', 'b', 'A', 'q1', 'ε');
+        adicionarLinhaAP('q1', 'b', 'A', 'q1', 'ε');
+        adicionarLinhaAP('q1', 'ε', 'Z', 'q2', 'Z');
+    }
+
+    async function executarMod4() {
+        const transicoes = [];
+        document.querySelectorAll('#m4CorpoTabela tr').forEach(tr => {
+            const estadoAtual = tr.querySelector('.ap-atual').value.trim();
+            const simboloLido = tr.querySelector('.ap-leitura').value.trim();
+            const topoPilha = tr.querySelector('.ap-topo').value.trim();
+            const novoEstado = tr.querySelector('.ap-novo').value.trim();
+            const empilhar = tr.querySelector('.ap-empilhar').value.trim();
+            if (estadoAtual && novoEstado) {
+                transicoes.push({ estadoAtual, simboloLido, topoPilha, novoEstado, empilhar });
+            }
+        });
+
+        const payload = {
+            estados: document.getElementById('m4Estados').value.split(',').map(s => s.trim()).filter(Boolean),
+            alfabeto: document.getElementById('m4Alfabeto').value.split(',').map(s => s.trim()).filter(Boolean),
+            estadoInicial: document.getElementById('m4Inicial').value.trim(),
+            estadosFinais: document.getElementById('m4Finais').value.split(',').map(s => s.trim()).filter(Boolean),
+            simboloInicialPilha: document.getElementById('m4Z0').value.trim(),
+            transicoes,
+            cadeia: document.getElementById('m4Cadeia').value
+        };
+
+        const res = await fetch('/api/automatos/pilha/simular', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        const card = document.getElementById('m4ResultadoCard');
+        card.style.display = 'block';
+        const status = document.getElementById('m4Status');
+
+        if (!res.ok) {
+            status.className = 'result-box erro';
+            status.innerText = data.erro || 'Erro ao simular Autômato com Pilha.';
+            return;
+        }
+
+        dadosAPAtual = data;
+        indicePassoAP = data.passos.length - 1;
+
+        status.className = 'result-box ' + (data.aceita ? 'sucesso' : 'erro');
+        status.innerText = data.mensagem;
+
+        const tbody = document.getElementById('m4TabelaPassos');
+        tbody.innerHTML = '';
+        data.passos.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => { indicePassoAP = idx; renderizarPilhaVisual(); };
+            tr.innerHTML = `
+                <td>${p.passo}</td>
+                <td class="mono">${esc(p.leitura)}</td>
+                <td><strong>${esc(p.estado)}</strong></td>
+                <td class="mono">${esc(p.conteudoPilha)}</td>
+                <td>${esc(p.acao)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        renderizarPilhaVisual();
+    }
+
+    function mudarPassoAP(delta) {
+        if (!dadosAPAtual) return;
+        indicePassoAP = Math.max(0, Math.min(dadosAPAtual.passos.length - 1, indicePassoAP + delta));
+        renderizarPilhaVisual();
+    }
+
+    function renderizarPilhaVisual() {
+        if (!dadosAPAtual) return;
+        const p = dadosAPAtual.passos[indicePassoAP];
+        document.getElementById('m4VisualInfo').innerText = `Passo ${p.passo} de ${dadosAPAtual.passos.length - 1}`;
+        document.getElementById('m4VisEstado').innerText = p.estado;
+        document.getElementById('m4VisLeitura').innerText = p.leitura;
+        document.getElementById('m4VisAcao').innerText = p.acao;
+
+        const bucket = document.getElementById('m4PilhaVisual');
+        const itens = p.elementosPilha || [];
+        if (itens.length === 0) {
+            bucket.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px;">∅ (Pilha Vazia)</div>';
+        } else {
+            bucket.innerHTML = itens.map((el, i) =>
+                `<div class="stack-item ${i === 0 ? 'top' : ''}">${esc(el)}${i === 0 ? ' ← TOPO' : ''}</div>`
+            ).join('');
+        }
+    }
+
+    // =========================================================================
+    // MÓDULO 5: MÁQUINA DE TURING (OPÇÃO A E OPÇÃO B + FITA VISUAL)
+    // =========================================================================
+    let dadosMTAtual = null;
+    let indicePassoMT = 0;
+
+    function adicionarLinhaMT(atual = '', lido = '', novo = '', escrito = '', dir = 'R') {
+        const tbody = document.getElementById('corpoTabelaMT');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="e-atual" value="${esc(atual)}" style="width:70px"></td>
+            <td><input type="text" class="s-lido" value="${esc(lido)}" maxlength="1" style="width:50px"></td>
+            <td><input type="text" class="e-novo" value="${esc(novo)}" style="width:70px"></td>
+            <td><input type="text" class="s-escrito" value="${esc(escrito)}" maxlength="1" style="width:50px"></td>
+            <td>
+                <select class="m-direcao" style="width:110px">
+                    <option value="R" ${dir === 'R' ? 'selected' : ''}>R (Direita)</option>
+                    <option value="L" ${dir === 'L' ? 'selected' : ''}>L (Esquerda)</option>
+                </select>
+            </td>
+            <td><button type="button" class="btn btn-del" onclick="this.closest('tr').remove()">Excluir</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function carregarMTOpcaoB() {
+        document.getElementById('fita').value = '000100';
+        document.getElementById('estadoInicial').value = 'q0';
+        document.getElementById('estadoFinal').value = 'q3';
+        document.getElementById('corpoTabelaMT').innerHTML = '';
+
+        adicionarLinhaMT('q0', '0', 'q0', '0', 'R');
+        adicionarLinhaMT('q0', '1', 'q1', '0', 'R');
+        adicionarLinhaMT('q1', '0', 'q1', '0', 'R');
+        adicionarLinhaMT('q1', 'B', 'q2', 'B', 'L');
+        adicionarLinhaMT('q2', '0', 'q3', 'B', 'R');
+    }
+
+    function carregarMTOpcaoA() {
+        document.getElementById('fita').value = 'ab#ab';
+        document.getElementById('estadoInicial').value = 'q0';
+        document.getElementById('estadoFinal').value = 'q8';
+        document.getElementById('corpoTabelaMT').innerHTML = '';
+
+        // Marca 'a' -> 'X' e busca 'a' após '#'
+        adicionarLinhaMT('q0', 'a', 'q1', 'X', 'R');
+        adicionarLinhaMT('q1', 'a', 'q1', 'a', 'R');
+        adicionarLinhaMT('q1', 'b', 'q1', 'b', 'R');
+        adicionarLinhaMT('q1', '#', 'q3', '#', 'R');
+        adicionarLinhaMT('q3', 'X', 'q3', 'X', 'R');
+        adicionarLinhaMT('q3', 'Y', 'q3', 'Y', 'R');
+        adicionarLinhaMT('q3', 'a', 'q6', 'X', 'L');
+
+        // Marca 'b' -> 'Y' e busca 'b' após '#'
+        adicionarLinhaMT('q0', 'b', 'q2', 'Y', 'R');
+        adicionarLinhaMT('q2', 'a', 'q2', 'a', 'R');
+        adicionarLinhaMT('q2', 'b', 'q2', 'b', 'R');
+        adicionarLinhaMT('q2', '#', 'q4', '#', 'R');
+        adicionarLinhaMT('q4', 'X', 'q4', 'X', 'R');
+        adicionarLinhaMT('q4', 'Y', 'q4', 'Y', 'R');
+        adicionarLinhaMT('q4', 'b', 'q6', 'Y', 'L');
+
+        // Retorna cabeçote para o próximo símbolo à esquerda de '#'
+        adicionarLinhaMT('q6', 'X', 'q6', 'X', 'L');
+        adicionarLinhaMT('q6', 'Y', 'q6', 'Y', 'L');
+        adicionarLinhaMT('q6', '#', 'q7', '#', 'L');
+        adicionarLinhaMT('q7', 'a', 'q7', 'a', 'L');
+        adicionarLinhaMT('q7', 'b', 'q7', 'b', 'L');
+        adicionarLinhaMT('q7', 'X', 'q0', 'X', 'R');
+        adicionarLinhaMT('q7', 'Y', 'q0', 'Y', 'R');
+
+        // Verifica se lado direito também terminou após '#'
+        adicionarLinhaMT('q0', '#', 'q5', '#', 'R');
+        adicionarLinhaMT('q5', 'X', 'q5', 'X', 'R');
+        adicionarLinhaMT('q5', 'Y', 'q5', 'Y', 'R');
+        adicionarLinhaMT('q5', 'B', 'q8', 'B', 'R');
+    }
+
+    async function simularMT() {
+        const transacoes = [];
+        document.querySelectorAll('#corpoTabelaMT tr').forEach(row => {
+            const estadoAtual = row.querySelector('.e-atual').value.trim();
+            const simboloLido = row.querySelector('.s-lido').value;
+            const novoEstado = row.querySelector('.e-novo').value.trim();
+            const simboloEscrito = row.querySelector('.s-escrito').value;
+            const movimento = row.querySelector('.m-direcao').value;
+
+            if (estadoAtual && simboloLido) {
+                transacoes.push({ estadoAtual, simboloLido, novoEstado, simboloEscrito, movimento });
+            }
+        });
+
+        const payload = {
+            estadoInicial: document.getElementById('estadoInicial').value.trim(),
+            estadoFinal: document.getElementById('estadoFinal').value.trim(),
+            fita: document.getElementById('fita').value,
+            transacoes
+        };
+
+        const response = await fetch('/api/simular', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        dadosMTAtual = data;
+        indicePassoMT = data.passos.length - 1;
+
+        document.getElementById('cardResultadoMT').style.display = 'block';
+        const statusBox = document.getElementById('statusResultadoMT');
+        statusBox.className = 'result-box ' + (data.aceita ? 'sucesso' : 'erro');
+        statusBox.innerText = `${data.mensagem} | Estado Final: ${data.estadoFinal} | Fita Final: ${data.fitaFinal}`;
+
+        const corpoPassos = document.getElementById('corpoPassosMT');
+        corpoPassos.innerHTML = '';
+
+        data.passos.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => { indicePassoMT = idx; renderizarFitaMT(); };
+
+            let fitaFormatada = '';
+            for (let i = 0; i < p.fitaConteudo.length; i++) {
+                fitaFormatada += (i === p.cabecote)
+                    ? `<b>[${esc(p.fitaConteudo[i])}]</b>`
+                    : esc(p.fitaConteudo[i]);
+            }
+
+            tr.innerHTML = `
+                <td>${p.passo}</td>
+                <td><strong>${esc(p.estadoAtual)}</strong></td>
+                <td class="mono">'${esc(p.simboloLido)}'</td>
+                <td class="fita-pos">${fitaFormatada}</td>
+                <td>${esc(p.acao)}</td>
+            `;
+            corpoPassos.appendChild(tr);
+        });
+
+        renderizarFitaMT();
+    }
+
+    function mudarPassoMT(delta) {
+        if (!dadosMTAtual) return;
+        indicePassoMT = Math.max(0, Math.min(dadosMTAtual.passos.length - 1, indicePassoMT + delta));
+        renderizarFitaMT();
+    }
+
+    function renderizarFitaMT() {
+        if (!dadosMTAtual) return;
+        const p = dadosMTAtual.passos[indicePassoMT];
+        document.getElementById('m5VisualInfo').innerText =
+            `Passo ${p.passo} | Estado: ${p.estadoAtual} | Cabeçote: índice ${p.cabecote}`;
+        document.getElementById('m5AcaoVisual').innerText = p.acao;
+
+        const container = document.getElementById('m5FitaVisual');
+        let cellsHtml = '';
+        for (let i = 0; i < p.fitaConteudo.length; i++) {
+            const isHead = i === p.cabecote;
+            cellsHtml += `
+                <div class="tape-cell ${isHead ? 'head' : ''}">
+                    <span>${esc(p.fitaConteudo[i])}</span>
+                    <small>${isHead ? '▲' : i}</small>
+                </div>
+            `;
+        }
+        container.innerHTML = cellsHtml;
+    }
+
+    // =========================================================================
+    // INICIALIZAÇÃO DOS EXEMPLOS AO ABRIR A PÁGINA
+    // =========================================================================
+    window.onload = function () {
+        carregarAFDEdital();
+        carregarAPAnBn();
+        carregarMTOpcaoB();
+    };
+</script>
+</body>
+</html>
